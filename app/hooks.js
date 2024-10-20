@@ -4,53 +4,49 @@ import { useState, useEffect, useCallback } from "react";
 export function useAuthenticatedFetch() {
     const [headers, setHeaders] = useState({});
 
-    useEffect(() => {
-        async function fetchSessionToken() {
-            try {
-                // Fetch the token from your API (customize the endpoint as per your setup)
-                const response = await fetch("/api/auth/token");
+    async function fetchAccessToken() {
+        try {
+            // Call your backend API to get the access token
+            const response = await fetch("https://shopy-appstore.myshopify.com/admin/api/2024-10"); // Update this to your actual endpoint
 
-                // If the response is not OK, handle the error
-                if (!response.ok) {
-                    throw new Error("Failed to fetch authentication token");
-                }
-
-                const data = await response.json();
-
-                // Set the Authorization header with the fetched token
-                setHeaders({ Authorization: `Bearer ${data.token}` });
-            } catch (error) {
-                console.error("Error fetching token:", error);
+            if (!response.ok) {
+                throw new Error("Failed to fetch access token");
             }
-        }
 
-        fetchSessionToken();
+            const data = await response.json();
+
+            // Assuming the token is returned in data.token
+            setHeaders({ Authorization: `Bearer ${data.token}` });
+        } catch (error) {
+            console.error("Error fetching token:", error);
+        }
+    }
+    useEffect(() => {
+        fetchAccessToken();
     }, []);
 
-    // Memoize the returned function to prevent unnecessary re-creations
     const authenticatedFetch = useCallback(
         async (url, options = {}) => {
             if (!headers.Authorization) {
                 throw new Error("Authorization token is missing");
             }
 
-            // Perform the fetch request with the merged headers
             const response = await fetch(url, {
                 ...options,
                 headers: {
                     ...headers,
-                    ...options.headers, // Merge any custom headers passed in options
+                    ...options.headers,
                 },
             });
 
-            // Handle any non-OK responses (optional, based on your API needs)
             if (!response.ok) {
                 throw new Error(`Fetch failed with status: ${response.status}`);
             }
 
-            return response;
+            // Optionally return the parsed JSON response
+            return response.json(); // This line returns the JSON response
         },
-        [headers] // Ensure this function gets updated when headers change
+        [headers] // Consider the implications of this dependency
     );
 
     return authenticatedFetch;

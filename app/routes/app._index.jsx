@@ -1,54 +1,91 @@
 import { useAuthenticatedFetch } from "../hooks";
-// import { useAuthenticatedFetch } from "@shopify/app-bridge-react";
 import { useEffect, useState } from "react";
 import { Card, DataTable, Page, Button, TextField, FormLayout } from "@shopify/polaris";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
-  const [newProduct, setNewProduct] = useState({
-    title: "",
-    vendor: "",
-    price: ""
-  });
+  const [newProduct, setNewProduct] = useState({ title: "", vendor: "", price: "" });
   const fetch = useAuthenticatedFetch();
+  const [loading, setLoading] = useState(false);
 
-  // Fetch products from Shopify Admin API
-  useEffect(() => {
-    async function fetchProducts() {
-      try {
-        const response = await fetch("/api/products");
-        const data = await response.json();
-        setProducts(data.products);
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('/api/products', {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN, // Accessing the token from environment variable
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
+
+      const data = await response.json();
+      setProducts(data.products);
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
     }
+  };
+
+
+  useEffect(() => {
+    // async function fetchProducts() {
+    //   try {
+    //     const response = await fetch('/api/products');
+    //     if (!response.ok) {
+    //       throw new Error(`Error ${response.status}: ${response.statusText}`);
+    //     }
+    //     const data = await response.json();
+    //     setProducts(data.products);
+    //   } catch (error) {
+    //     console.error("Failed to fetch products:", error);
+    //   }
+    // }
+
     fetchProducts();
   }, [fetch]);
 
-  // Handle adding a new product
   async function handleAddProduct() {
+    setLoading(true);
     try {
-      const response = await fetch("/api/products", {
+      const response = await fetch('/api/products', {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN, // Accessing the token from environment variable
         },
-        body: JSON.stringify(newProduct)
+        body: JSON.stringify({ product: newProduct }),
       });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
       const data = await response.json();
-      setProducts([...products, data.product]); // Add the new product to the list
-      setNewProduct({ title: "", vendor: "", price: "" }); // Reset form
+      setProducts([...products, data.product]);
+      setNewProduct({ title: "", vendor: "", price: "" });
     } catch (error) {
       console.error("Failed to add product:", error);
+    } finally {
+      setLoading(false);
     }
   }
 
-  // Handle deleting a product
   async function handleDeleteProduct(id) {
     try {
-      await fetch(`/api/products/${id}`, { method: "DELETE" });
-      setProducts(products.filter((product) => product.id !== id)); // Remove the deleted product from the list
+      const response = await fetch(`/api/products?id=${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN, // Accessing the token from environment variable
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+      setProducts(products.filter((product) => product.id !== id));
     } catch (error) {
       console.error("Failed to delete product:", error);
     }
@@ -58,7 +95,7 @@ export default function ProductsPage() {
     product.title,
     product.vendor,
     product.price,
-    <Button destructive onClick={() => handleDeleteProduct(product.id)}>Delete</Button>
+    <Button destructive onClick={() => handleDeleteProduct(product.id)}>Delete</Button>,
   ]);
 
   return (
@@ -71,7 +108,6 @@ export default function ProductsPage() {
         />
       </Card>
 
-      {/* Form to Add a New Product */}
       <Card title="Add New Product">
         <FormLayout>
           <TextField
@@ -90,7 +126,7 @@ export default function ProductsPage() {
             value={newProduct.price}
             onChange={(value) => setNewProduct({ ...newProduct, price: value })}
           />
-          <Button onClick={handleAddProduct} primary>Add Product</Button>
+          <Button onClick={handleAddProduct} primary loading={loading}>Add Product</Button>
         </FormLayout>
       </Card>
     </Page>

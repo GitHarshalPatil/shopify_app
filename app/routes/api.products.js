@@ -1,6 +1,5 @@
-// app/routes/api.products.js
-
 import { json } from "@remix-run/node";
+// import { authenticate } from "../shopify.server";
 import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }) => {

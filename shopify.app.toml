@@ -3,7 +3,7 @@
 client_id = "61a39c5cad8950ecea79620eaf2bee5c"
 name = "new-app"
 handle = "new-app-848"
-application_url = "https://president-span-supposed-tn.trycloudflare.com"
+application_url = "https://talking-ext-curriculum-equipment.trycloudflare.com"
 embedded = true
 
 [build]
@@ -16,9 +16,9 @@ scopes = ""
 
 [auth]
 redirect_urls = [
-  "https://president-span-supposed-tn.trycloudflare.com/auth/callback",
-  "https://president-span-supposed-tn.trycloudflare.com/auth/shopify/callback",
-  "https://president-span-supposed-tn.trycloudflare.com/api/auth/callback"
+  "https://talking-ext-curriculum-equipment.trycloudflare.com/auth/callback",
+  "https://talking-ext-curriculum-equipment.trycloudflare.com/auth/shopify/callback",
+  "https://talking-ext-curriculum-equipment.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

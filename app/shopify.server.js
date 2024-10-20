@@ -5,8 +5,35 @@ import {
   shopifyApp,
 } from "@shopify/shopify-app-remix/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
-import { restResources } from "@shopify/shopify-api/rest/admin/2024-07";
+import { restResources } from "@shopify/shopify-api/rest/admin/2024-10";
 import prisma from "./db.server";
+
+// shopify.server.js
+
+export const authenticate = {
+  admin: async (request) => {
+    const token = getAccessTokenFromRequest(request); // You'll implement this function to retrieve the token
+
+    if (!token) {
+      throw new Error("Unauthorized access: No access token found");
+    }
+
+    // Optionally, you could verify the token here against Shopify or your session store
+
+    // If everything is valid, you can return or store user data as needed
+    return true; // Or you can return user data or permissions
+  },
+};
+
+// Utility function to extract the token from the request headers or session
+function getAccessTokenFromRequest(request) {
+  const authHeader = request.headers.get("Authorization");
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    return authHeader.split(" ")[1]; // Extract the token
+  }
+  return null;
+}
+
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -29,7 +56,7 @@ const shopify = shopifyApp({
 export default shopify;
 export const apiVersion = ApiVersion.October24;
 export const addDocumentResponseHeaders = shopify.addDocumentResponseHeaders;
-export const authenticate = shopify.authenticate;
+// export const authenticate = shopify.authenticate;
 export const unauthenticated = shopify.unauthenticated;
 export const login = shopify.login;
 export const registerWebhooks = shopify.registerWebhooks;
